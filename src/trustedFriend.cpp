@@ -7,6 +7,13 @@
  * @date 11/10/16
  */
 
+//
+//  changes Nov 12, 2016
+//
+//  1) turn off search for the batch dataset
+//  2) fix processing line reporting
+//
+
 #include "Graph.h"
 
 #include <cstdio>
@@ -16,6 +23,7 @@
 #include <vector>
 #include <cstdarg>
 #include <queue>
+#include <ctime>
 
 using std::cout;    using std::endl;
 
@@ -45,7 +53,7 @@ public:
     void processPayment(int id1, int id2)
     {
         //
-        //  Launches Breadth-First Search Algorithm and handles the results
+        //  just connect two vertices with edge: transaction no question asked
         //
 
         int max = id1 > id2? id1: id2;
@@ -53,17 +61,6 @@ public:
             vertices_.resize(max+1);
             dist_.resize(max+1, std::numeric_limits<int>::max());
             pred_.resize(max+1, -1);
-        }
-
-        int id_search_distance = bfsSearch(id1, id2);
-
-        if (id_search_distance >= 0) {
-            if (namespace_debug::debug) cout<< "\t+++ TrustedPay::processPayment: id1 " << id1 << " found a friend " << id2 << " at the distance " << id_search_distance <<endl;
-            // record the case
-        }
-        else {
-            if (namespace_debug::debug) cout<< "--- TrustedPay::processPayment: no tructed friend found withing depth " << maxdepth_ <<endl;
-            // send a message
         }
 
         addEdge(id1, id2, 1);    // register transaction
@@ -143,49 +140,65 @@ public:
 
         while (!queue.empty())
         {
-            int u = queue.front();
+            int u = queue.front();  // take vertex from queue and find its neighbors
 
-            if (maxdepth_ < 0 || dist_[u] < maxdepth_)
-            {
-                // enqueue white neighbors
-                for (VertexList::const_iterator it = begin(u); it != end(u); ++it) {
-                    int v = it->first;
-                    if (color[v] == White) {
-	                dist_[v] = dist_[u]+1;
-	                pred_[v] = u;
-	                color[v] = Gray;
-	                queue.push(v);
-                    }
+            if (maxdepth_ < 0 || dist_[u] == maxdepth_) {
+                // no sense to explore this vertex and its children
+                queue.pop();
+                color[u] = Black;
+                continue;
+            }
+
+            // enqueue white neighbors
+            for (VertexList::const_iterator it=begin(u); it!=end(u); ++it) {
+                int v = it->first;
+
+                // NB: all vertices here have dist_[v] = dist_[u] + 1
+
+                //
+                // we can check v == id_search right here!
+                //
+                if (v == id_search) return dist_[u]+1;
+
+                if (color[v] == White) {
+	            dist_[v] = dist_[u]+1;
+	            pred_[v] = u;
+	            color[v] = Gray;
+	            queue.push(v);
                 }
             }
 
             queue.pop();
             color[u] = Black;
 
-            if (u == id_search) {
-                id_search_distance = dist_[u];
-                break;
-            }
+            //
+            // probably we don't need this check
+            //
+            // if (u == id_search) {
+            //     id_search_distance = dist_[u];
+            //     break;
+            // }
         }
 
         return id_search_distance;
     }
 };
 
-void trustedFriend()
+void trustedFriend(const char* ifname_batch, const char* ifname_stream, const char* ofname1, const char* ofname2, const char* ofname3)
 {
     //
     //  degree of the friends network
     //
     int maxdepth = 4;
 
+    // int nlines = 100000;
     int nlines = 0;
 
-    const char* ifname_batch = "paymo_input/batch_payment.csv";
-    const char* ifname_stream = "paymo_input/stream_payment.csv";
-    const char* ofname1 = "paymo_output/output1.txt";
-    const char* ofname2 = "paymo_output/output2.txt";
-    const char* ofname3 = "paymo_output/output3.txt";
+    // const char* ifname_batch = "paymo_input/batch_payment.csv";
+    // const char* ifname_stream = "paymo_input/stream_payment.csv";
+    // const char* ofname1 = "paymo_output/output1.txt";
+    // const char* ofname2 = "paymo_output/output2.txt";
+    // const char* ofname3 = "paymo_output/output3.txt";
 
     cout<< ifname_batch <<endl;
     cout<< ifname_stream <<endl;
@@ -223,10 +236,16 @@ void trustedFriend()
         // 2) no out-of-range check for vector
         //
 
-        // if (false
-        //     || iline < 10
-        //     || iline % 100000 == 0
-        //    ) cout<< "processing line " << iline <<endl;
+        if (false
+            || iline < 10
+            || (iline < 10000 && iline % 1000 == 0)
+            || (iline < 100000 && iline % 10000 == 0)
+            || (iline % 100000 == 0)
+           ) {
+            time_t rawtime;
+            std::time(&rawtime);
+            cout<< "processing line " << iline << "\t " << std::ctime(&rawtime);    // NB: ctime inserts \n
+        }
 
         sscanf(line.c_str(), "%s %s %d, %d, %lf", date, time, &id1, &id2, &amount);
         if (iline < nprint) cout<< date << " " << time << " " << id1 << ", " << id2 << ", " << amount <<endl;
@@ -271,6 +290,17 @@ void trustedFriend()
     {
         if (nlines > 0 && iline >= nlines) break;
 
+        if (false
+            || iline < 10
+            || (iline < 10000 && iline % 1000 == 0)
+            || (iline < 100000 && iline % 10000 == 0)
+            || (iline % 100000 == 0)
+           ) {
+            time_t rawtime;
+            std::time(&rawtime);
+            cout<< "processing line " << iline << "\t " << std::ctime(&rawtime);    // NB: ctime inserts \n
+        }
+
         sscanf(line.c_str(), "%s %s %d, %d, %lf", date, time, &id1, &id2, &amount);
         if (iline < nprint) cout<< date << " " << time << " " << id1 << ", " << id2 << ", " << amount <<endl;
 
@@ -278,8 +308,21 @@ void trustedFriend()
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    trustedFriend();
+    cout<< "argc = " << argc <<endl;  for (int i=0; i<argc; ++i) cout<< i <<" "<< argv[i] <<endl;
+
+    if (argc < 5) {
+        cout<< "Usage:\n" << argv[0] << " par1 par2 par3" <<endl;
+        return 0;
+    }
+
+    const char* ifname_batch = argv[1];
+    const char* ifname_stream = argv[2];
+    const char* ofname1 = argv[3];
+    const char* ofname2 = argv[4];
+    const char* ofname3 = argv[5];
+
+    trustedFriend(ifname_batch, ifname_stream, ofname1, ofname2, ofname3);
     return 0;
 }
