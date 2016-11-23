@@ -58,7 +58,7 @@ public:
     bool directed() const { return directed_; }
     const VertexList& getVertex(int u) const {return vertices_.at(u);}
     void addWeight(int u, int v, int increment=1) {
-        // TODO: the weight may contain the nunber of transaction
+        // TODO: the weight may contain the number of transaction
         VertexList list = vertices_.at(u);
         for (VertexList::iterator it=vertices_[u].begin(); it!=vertices_[u].end(); ++it) {
             if (it->first == v) {

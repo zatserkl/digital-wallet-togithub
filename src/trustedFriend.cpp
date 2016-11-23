@@ -130,7 +130,7 @@ public:
         // initialize for all vertices in the graph
         pred_.assign(numVertices(), -1);                                // no predessor
         dist_.assign(numVertices(), std::numeric_limits<int>::max());   // infinite distance
-        std::vector<vertexColor> color(numVertices(), White);       // all White: unvisited
+        std::vector<vertexColor> color(numVertices(), White);           // all White: unvisited
 
         dist_[s] = 0;
         color[s] = Gray;
@@ -223,7 +223,7 @@ void trustedFriend(const char* ifname_batch, const char* ifname_stream, const ch
     std::getline(ifile_batch, line);
     // cout<< line <<endl;
 
-    TrustedPay tructedPay(maxdepth);    // let's start from the size 0
+    TrustedPay trustedPay(maxdepth);    // let's start from the size 0
 
     int nprint = 0;         // the number of lines to print
 
@@ -250,17 +250,17 @@ void trustedFriend(const char* ifname_batch, const char* ifname_stream, const ch
         sscanf(line.c_str(), "%s %s %d, %d, %lf", date, time, &id1, &id2, &amount);
         if (iline < nprint) cout<< date << " " << time << " " << id1 << ", " << id2 << ", " << amount <<endl;
 
-        tructedPay.processPayment(id1, id2);
+        trustedPay.processPayment(id1, id2);
 
-        if (id1 == namespace_debug::test_id1) cout<< ++namespace_debug::ntest_id1 << "\tid1 = " << id1 << " id2 = " << id2 << " amount = " << amount << " size = " << tructedPay.getVertex(id1).size() <<endl;
+        if (id1 == namespace_debug::test_id1) cout<< ++namespace_debug::ntest_id1 << "\tid1 = " << id1 << " id2 = " << id2 << " amount = " << amount << " size = " << trustedPay.getVertex(id1).size() <<endl;
     }
 
-    // cout<< "tructedPay.numVertices() = " << tructedPay.numVertices() <<endl;
+    // cout<< "trustedPay.numVertices() = " << trustedPay.numVertices() <<endl;
 
     if (namespace_debug::debug) {
         if (namespace_debug::test_id1 >= 0) {
-            cout<< "tructedPay.getVertex(" << namespace_debug::test_id1 << ").size() = " << tructedPay.getVertex(namespace_debug::test_id1).size() <<endl;
-            for (VertexList::const_iterator it=tructedPay.getVertex(namespace_debug::test_id1).begin(); it!=tructedPay.getVertex(namespace_debug::test_id1).end(); ++it) {
+            cout<< "trustedPay.getVertex(" << namespace_debug::test_id1 << ").size() = " << trustedPay.getVertex(namespace_debug::test_id1).size() <<endl;
+            for (VertexList::const_iterator it=trustedPay.getVertex(namespace_debug::test_id1).begin(); it!=trustedPay.getVertex(namespace_debug::test_id1).end(); ++it) {
                 cout<< "id1 = " << namespace_debug::test_id1 << " id2: it->first = " << it->first << " weight: it->second = " << it->second <<endl;
             }
         }
@@ -304,7 +304,7 @@ void trustedFriend(const char* ifname_batch, const char* ifname_stream, const ch
         sscanf(line.c_str(), "%s %s %d, %d, %lf", date, time, &id1, &id2, &amount);
         if (iline < nprint) cout<< date << " " << time << " " << id1 << ", " << id2 << ", " << amount <<endl;
 
-        tructedPay.processPayment(id1, id2, ofile1, ofile2, ofile3);
+        trustedPay.processPayment(id1, id2, ofile1, ofile2, ofile3);
     }
 }
 
