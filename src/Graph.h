@@ -17,6 +17,7 @@
 #include <limits>
 #include <list>
 #include <vector>
+#include <algorithm>
 
 // For vertex u, store information about (v,w) where edge (u,v)
 // has the designated edge weight w. The first value is the id
@@ -31,6 +32,10 @@ enum vertexColor { White, Gray, Black };
 
 /** Types of computed edge types during DepthFirstSearch. */
 enum edgeType { Tree, Backward, Forward, Cross };
+
+bool compareId(IdWeight p1, IdWeight p2) {
+    return p1.first < p2.first;
+}
 
 /**
  * Graph superclass to define common interface for Graph objects and
@@ -107,6 +112,29 @@ public:
             std::pair<int, int> edgeR (u,w);
             vertices_[v].push_front(edgeR);
         }
+    }
+    void addEdgeSort (int u, int v, int w=1) {
+        if (u > numVertices() || v > numVertices()) {
+            throw "Graph::addEdge given vertex larger than graph size";
+        }
+
+        std::pair<int,int> edge(v,w);
+        // vertices_[u].push_front(edge);
+        // vertices_[u].sort(compareId);
+        //-- vertices_[u].insert(std::lower_bound(vertices_[u].begin(), vertices_[u].end(), edge), edge);
+        vertices_[u].insert(std::lower_bound(vertices_[u].begin(), vertices_[u].end(), edge, compareId), edge);
+
+        // undirected have both.
+        if (!directed_) {
+            std::pair<int, int> edgeR (u,w);
+            // vertices_[v].push_front(edgeR);
+            // vertices_[v].sort(compareId);
+            //-- vertices_[v].insert(std::lower_bound(vertices_[v].begin(), vertices_[v].end(), edge), edge);
+            vertices_[v].insert(std::lower_bound(vertices_[v].begin(), vertices_[v].end(), edge, compareId), edge);
+        }
+    }
+    bool binarySearch(int u, int v) const {
+        return std::binary_search(vertices_[u].begin(), vertices_[u].end(), std::pair<int,int>(v,0), compareId);
     }
     bool removeEdge (int u, int v) {
         bool found = false;

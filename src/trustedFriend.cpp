@@ -56,14 +56,14 @@ public:
         //  just connect two vertices with edge: transaction no question asked
         //
 
-        int max = id1 > id2? id1: id2;
+        unsigned max = id1 > id2? id1: id2;
         if (max >= vertices_.size()) {
             vertices_.resize(max+1);
             dist_.resize(max+1, std::numeric_limits<int>::max());
             pred_.resize(max+1, -1);
         }
 
-        addEdge(id1, id2, 1);    // register transaction
+        addEdgeSort(id1, id2, 1);    // register transaction
     }
 
     void processPayment(int id1, int id2, std::ofstream& ofile1, std::ofstream& ofile2, std::ofstream& ofile3)
@@ -72,7 +72,7 @@ public:
         //  Launches Breadth-First Search Algorithm and handles the results
         //
 
-        int max = id1 > id2? id1: id2;
+        unsigned max = id1 > id2? id1: id2;
         if (max >= vertices_.size()) {
             vertices_.resize(max+1);
             dist_.resize(max+1, std::numeric_limits<int>::max());
@@ -105,7 +105,7 @@ public:
             ofile3 << "trusted" <<endl;
         }
 
-        addEdge(id1, id2, 1);    // register transaction
+        addEdgeSort(id1, id2, 1);    // register transaction
     }
 
     int bfsSearch (int s, int id_search)
@@ -149,6 +149,8 @@ public:
                 continue;
             }
 
+            if (binarySearch(u, id_search)) return dist_[u]+1;
+
             // enqueue white neighbors
             for (VertexList::const_iterator it=begin(u); it!=end(u); ++it) {
                 int v = it->first;
@@ -158,7 +160,7 @@ public:
                 //
                 // we can check v == id_search right here!
                 //
-                if (v == id_search) return dist_[u]+1;
+                //-- if (v == id_search) return dist_[u]+1;
 
                 if (color[v] == White) {
 	            dist_[v] = dist_[u]+1;
